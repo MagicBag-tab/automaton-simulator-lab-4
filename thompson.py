@@ -41,30 +41,6 @@ def afn_star(afn):
     
     return AFN(start, accept)
 
-def afn_plus(afn):
-    start = State()
-    accept = State(is_accept=True)
-    
-    start.add_transition(EPSILON, afn.start_state)
-    
-    afn.accept_state.is_accept = False
-    afn.accept_state.add_transition(EPSILON, afn.start_state)
-    afn.accept_state.add_transition(EPSILON, accept)
-    
-    return AFN(start, accept)
-
-def afn_optional(afn):
-    start = State()
-    accept = State(is_accept=True)
-    
-    start.add_transition(EPSILON, afn.start_state)
-    start.add_transition(EPSILON, accept)
-    
-    afn.accept_state.is_accept = False
-    afn.accept_state.add_transition(EPSILON, accept)
-    
-    return AFN(start, accept)
-
 def build_afn_from_postfix(postfix_tokens):
     State.reset_counter()
     stack = []
@@ -73,12 +49,6 @@ def build_afn_from_postfix(postfix_tokens):
         if token == '*':
             afn = stack.pop()
             stack.append(afn_star(afn))
-        elif token == '+':
-            afn = stack.pop()
-            stack.append(afn_plus(afn))
-        elif token == '?':
-            afn = stack.pop()
-            stack.append(afn_optional(afn))
         elif token == '|':
             afn2 = stack.pop()
             afn1 = stack.pop()
@@ -95,13 +65,15 @@ def build_afn_from_postfix(postfix_tokens):
     return None
 
 if __name__ == "__main__":
-    from postfix import conversion_steps, CONCAT
+    from postfix import conversion_steps, CONCAT, expand_postfix
     
-    test_regex = "(a|b)*&a&b&b&(a|b)*"
+    test_regex = "(a*|b*)+"
     _, steps = conversion_steps(test_regex)
     postfix_tokens = steps[-1]["output"]
     
-    print(f"Tokens postfijos: {postfix_tokens}")
-    afn = build_afn_from_postfix(postfix_tokens)
+    expanded_tokens = expand_postfix(postfix_tokens)
+    
+    print(f"Tokens expandidos: {expanded_tokens}")
+    afn = build_afn_from_postfix(expanded_tokens)
     print(f"Estado inicial AFN: {afn.start_state.id}")
     print(f"Estado final AFN: {afn.accept_state.id}")
