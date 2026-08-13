@@ -1,4 +1,4 @@
-from afn import EPSILON
+from thompson import EPSILON
 
 def epsilon_closure(states):
     stack = list(states)
