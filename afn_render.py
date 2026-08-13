@@ -5,9 +5,9 @@ from ui import PANEL, BORDER, ACCENT, TEXT_DARK, TEXT_LIGHT, TEXT_MID, BG
 
 class AFNRenderer:
     def __init__(self):
-        self.node_radius = 20
-        self.layer_spacing_x = 90
-        self.layer_spacing_y = 60
+        self.node_radius = 28
+        self.layer_spacing_x = 120
+        self.layer_spacing_y = 80
 
     def calculate_layout(self, afn, rect):
         """Calcula las posiciones de cada estado del AFN usando BFS por capas"""

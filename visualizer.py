@@ -54,8 +54,8 @@ from ui import (
 )
 
 
-LOGICAL_WIDTH = 1200
-LOGICAL_HEIGHT = 760
+LOGICAL_WIDTH = 1600
+LOGICAL_HEIGHT = 1000
 WINDOW_WIDTH = LOGICAL_WIDTH
 WINDOW_HEIGHT = LOGICAL_HEIGHT
 MIN_WIDTH = LOGICAL_WIDTH
@@ -333,14 +333,22 @@ class VisualizerApp:
 
     def _draw_main_area(self):
         top = 294
-        height = 360
+        footer_top = LOGICAL_HEIGHT - 94
+        height = footer_top - top - 12
         available_width = LOGICAL_WIDTH - MARGIN * 2 - PANEL_GAP
+        
+        if self.state.phase == "afn":
+            # AFN ocupa todo el ancho, ocultando el stack
+            afn_rect = pygame.Rect(MARGIN, top, LOGICAL_WIDTH - MARGIN * 2, height)
+            self._draw_panel(afn_rect, "AFN DE THOMPSON", emphasized=True)
+            self._draw_tree(afn_rect)
+            return
+
         stack_width = round(available_width * 0.25)
         stack_rect = pygame.Rect(MARGIN, top, stack_width, height)
         tree_rect = pygame.Rect(stack_rect.right + PANEL_GAP, top, available_width - stack_width, height)
         self._draw_panel(stack_rect, emphasized=True)
-        panel_title = "AFN DE THOMPSON" if self.state.phase == "afn" else "ÁRBOL SINTÁCTICO"
-        self._draw_panel(tree_rect, panel_title, emphasized=True)
+        self._draw_panel(tree_rect, "ÁRBOL SINTÁCTICO", emphasized=True)
         stack_height = round(stack_rect.height * 0.58)
         action_height = 90
         stack_area = pygame.Rect(stack_rect.x, stack_rect.y, stack_rect.width, stack_height)
@@ -442,7 +450,7 @@ class VisualizerApp:
         return format_token(self.state.tokens[index]) if self.state.tokens else "·"
 
     def _draw_footer(self):
-        rect = pygame.Rect(MARGIN, 666, LOGICAL_WIDTH - MARGIN * 2, 78)
+        rect = pygame.Rect(MARGIN, LOGICAL_HEIGHT - 94, LOGICAL_WIDTH - MARGIN * 2, 78)
         self._draw_panel(rect, emphasized=True)
         button_size = 44
         # Make play button same style as restart (non-primary) and similar width
