@@ -41,4 +41,16 @@ def main():
         print()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nSaltando directamente al visualizador...")
+        pass
+        
+    print("Iniciando la interfaz gráfica (Pygame)...")
+    from visualizer import VisualizerApp, load_expressions
+    try:
+        app = VisualizerApp(load_expressions())
+        app.run()
+    except Exception as e:
+        print(f"Error al iniciar Pygame: {e}")

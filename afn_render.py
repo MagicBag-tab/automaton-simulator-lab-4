@@ -1,6 +1,6 @@
 import pygame
 import math
-from afn import EPSILON
+from thompson import EPSILON
 from ui import PANEL, BORDER, ACCENT, TEXT_DARK, TEXT_LIGHT, TEXT_MID, BG
 
 class AFNRenderer:
