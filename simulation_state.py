@@ -38,7 +38,11 @@ class SimulationState:
 
     @property
     def total_steps(self):
-        return len(self.postfix_steps if self.phase == "postfix" else self.tree_build_steps)
+        if self.phase == "postfix":
+            return len(self.postfix_steps)
+        elif self.phase == "tree":
+            return len(self.tree_build_steps)
+        return 1 # AFN is one step for now
 
     @property
     def progress(self):
@@ -73,11 +77,21 @@ class SimulationState:
         except Exception:
             pass
         self.tree_build_steps = tree_steps(simplified_postfix)
+        try:
+            from thompson import build_afn_from_postfix
+            self.afn = build_afn_from_postfix(simplified_postfix)
+        except Exception:
+            self.afn = None
+            
         self.phase = "postfix"
         self.step_index = 0
         self.timer = 0.0
         self.node_animations = {}
         self.push_animation = None
+
+    def skip_to_afn(self):
+        self.phase = "afn"
+        self.step_index = 0
 
     def change_expression(self, offset):
         self.expression_index = (self.expression_index + offset) % len(self.expressions)
@@ -99,12 +113,19 @@ class SimulationState:
             self.phase = "tree"
             self.step_index = 0
             self._initialize_nodes()
-        elif self.step_index < len(self.tree_build_steps) - 1:
+        elif self.phase == "tree" and self.step_index < len(self.tree_build_steps) - 1:
             self.step_index += 1
             self._initialize_nodes()
+        elif self.phase == "tree":
+            self.phase = "afn"
+            self.step_index = 0
 
     def retreat(self):
-        if self.phase == "tree" and self.step_index == 0:
+        if self.phase == "afn":
+            self.phase = "tree"
+            self.step_index = len(self.tree_build_steps) - 1
+            self._initialize_nodes()
+        elif self.phase == "tree" and self.step_index == 0:
             self.phase = "postfix"
             self.step_index = len(self.postfix_steps) - 1
         elif self.step_index > 0:
@@ -129,7 +150,7 @@ class SimulationState:
                 animation["scale"] = min(1.0, animation["scale"] + delta * animation_speed * 0.6)
         if self.auto_play and self.timer >= step_delay:
             self.timer = 0.0
-            if self.phase == "postfix" or self.step_index < len(self.tree_build_steps) - 1:
+            if self.phase == "postfix" or (self.phase == "tree" and self.step_index < len(self.tree_build_steps) - 1) or self.phase == "tree":
                 self.advance()
 
     def _initialize_nodes(self):

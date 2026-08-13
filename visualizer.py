@@ -32,6 +32,7 @@ from postfix import OPERATORS, format_token
 from simulation_state import SimulationState
 from stack_render import StackRenderer
 from tree_render import TreeRenderer
+from afn_render import AFNRenderer
 from ui import (
     ACCENT,
     ACCENT_HOVER,
@@ -96,6 +97,7 @@ class VisualizerApp:
         self.state = SimulationState(expressions)
         self.stack_renderer = StackRenderer()
         self.tree_renderer = TreeRenderer()
+        self.afn_renderer = AFNRenderer()
         self.buttons = {}
         self.viewport = pygame.Rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
         self.scale = WINDOW_WIDTH / LOGICAL_WIDTH
@@ -164,6 +166,7 @@ class VisualizerApp:
             "previous_step": self.state.retreat,
             "play": self.state.toggle_play,
             "next_step": self.state.advance,
+            "skip_to_afn": self.state.skip_to_afn,
         }
         for name, rect in self.buttons.items():
             if rect.collidepoint(position):
@@ -336,7 +339,8 @@ class VisualizerApp:
         stack_rect = pygame.Rect(MARGIN, top, stack_width, height)
         tree_rect = pygame.Rect(stack_rect.right + PANEL_GAP, top, available_width - stack_width, height)
         self._draw_panel(stack_rect, emphasized=True)
-        self._draw_panel(tree_rect, "ÁRBOL SINTÁCTICO", emphasized=True)
+        panel_title = "AFN DE THOMPSON" if self.state.phase == "afn" else "ÁRBOL SINTÁCTICO"
+        self._draw_panel(tree_rect, panel_title, emphasized=True)
         stack_height = round(stack_rect.height * 0.58)
         action_height = 90
         stack_area = pygame.Rect(stack_rect.x, stack_rect.y, stack_rect.width, stack_height)
@@ -370,6 +374,9 @@ class VisualizerApp:
 
     def _draw_tree(self, rect):
         content = pygame.Rect(rect.x + 8, rect.y + 28, rect.width - 16, rect.height - 34)
+        if self.state.phase == "afn":
+            self.afn_renderer.draw(self.canvas, content, self.state.afn, self.fonts)
+            return
         if self.state.phase == "postfix":
             self._draw_empty_tree(content)
             return
@@ -444,6 +451,7 @@ class VisualizerApp:
             ("play", "Pausar" if self.state.auto_play else "▶", 96, False),
             ("next_step", ">", button_size, False),
             ("restart", "Reiniciar", 96, False),
+            ("skip_to_afn", "Ver AFN", 96, True),
         ]
         total_width = sum(item[2] for item in specs) + PANEL_GAP * (len(specs) - 1)
         x = LOGICAL_WIDTH // 2 - total_width // 2
